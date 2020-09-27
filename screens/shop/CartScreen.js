@@ -1,13 +1,14 @@
-import React from "react";
-import { View, Text, FlatList, Button } from "react-native";
+import React, { useState } from "react";
+import { View, Text, FlatList, Button, ActivityIndicator } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { Ionicons } from "@expo/vector-icons";
 import { removeFromCart } from "../../store/action/cart";
 import { addOrders } from "../../store/action/orders";
 import CartItem from "../../components/CartItem";
 
 const Cart = (props) => {
   const dispatch = useDispatch();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const productContents = useSelector((state) => {
     const itemArray = [];
@@ -25,6 +26,12 @@ const Cart = (props) => {
 
   const totalAmount = useSelector((state) => state.cart.totalAmount);
 
+  const orderHandler = async () => {
+    setIsLoading(true);
+    await dispatch(addOrders(productContents, totalAmount));
+    setIsLoading(false);
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <View
@@ -35,14 +42,20 @@ const Cart = (props) => {
         }}
       >
         <Text>total amount {totalAmount.toFixed(2)}</Text>
-        <Button
-          title="order now"
-          onPress={() => {
-            dispatch(addOrders(productContents, totalAmount));
-          }}
-          color={"#ccc"}
-          disabled={productContents.length === 0 ? true : false}
-        />
+        {isLoading ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <ActivityIndicator size="small" color="purple" />
+          </View>
+        ) : (
+          <Button
+            title="order now"
+            onPress={orderHandler}
+            color={"#ccc"}
+            disabled={productContents.length === 0 ? true : false}
+          />
+        )}
       </View>
       <FlatList
         data={productContents}
